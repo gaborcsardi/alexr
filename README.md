@@ -3,7 +3,8 @@
 
 # alexr
 
-> Catch insensitive, inconsiderate writing
+> Catch insensitive, inconsiderate writing. This is
+> [alex](https://github.com/wooorm/alex) in R.
 
 [![Linux Build Status](https://travis-ci.org/gaborcsardi/alexr.svg?branch=master)](https://travis-ci.org/gaborcsardi/alexr)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/github/gaborcsardi/alexr?svg=true)](https://ci.appveyor.com/project/gaborcsardi/alexr)
