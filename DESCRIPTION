@@ -1,0 +1,12 @@
+Package: alexr
+Title: Catch Insensitive, Inconsiderate Writing
+Version: 1.1.0
+Author: Titus Wormer
+Maintainer: Gabor Csardi <csardi.gabor@gmail.com>
+Description: Whether your own or someone else’s writing, alex helps you find gender favouring, polarising, race related, religion inconsiderate, or other unequal phrasing.
+License: MIT + file LICENSE
+LazyData: true
+URL: https://github.com/metacran/alexr
+BugReports: https://github.com/metacran/alexr/issues
+Suggests: 
+    testthat
