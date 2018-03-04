@@ -1,7 +1,7 @@
 
 #' Catch Insensitive, Inconsiderate Writing
 #'
-#' Whether your own or someone else’s writing, alex helps you find
+#' Whether your own or someone else's writing, alex helps you find
 #' gender favouring, polarising, race related, religion inconsiderate,
 #' or other unequal phrasing.
 #'
@@ -13,7 +13,6 @@
 #' @return An object with S3 class \code{alex}. It's \code{messages}
 #'   entry contains the suggestions for changes, see examples below.
 #'
-#' @name alexr
 #' @export
 #' @examples
 #' x <- alex(c("The boogeyman wrote all changes to the **master server**.",
@@ -117,12 +116,13 @@ print_alex_file <- function(x) {
 }
 
 
-#' @importFrom V8 new_context JS
 ct <- NULL
+
+#' @importFrom V8 v8 JS
 
 .onLoad <- function(libname, pkgname){
   # highlight.js assumes 'window' object
-  ct <<- new_context(c("global", "window"))
+  ct <<- v8(c("global", "window"))
   libs <- list.files(
     system.file("js", package = pkgname),
     full.names = TRUE,
