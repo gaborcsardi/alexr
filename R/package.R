@@ -19,7 +19,7 @@
 #'              "Thus, the slaves were read-only copies of master.",
 #'              "But not to worry, he was a cripple."))
 #' x
-#' x$messages
+#' x$message
 
 alex <- function(value = NULL) {
 
