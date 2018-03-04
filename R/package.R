@@ -31,7 +31,8 @@ alex <- function(value = NULL) {
     res$file <- filename
 
   } else if (is.character(value)) {
-    res <- ct$call("alex", paste(value, collapse = "\n"))
+    res <- ct$call("alex", paste(value, collapse = "\n"))$messages
+    res$file <- "<value>"
 
   } else if (is.null(value)) {
     files <- files_for_alex()
