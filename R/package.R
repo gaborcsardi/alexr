@@ -23,7 +23,7 @@
 
 alex <- function(value = NULL) {
 
-  if (is(value, "connection")) {
+  if (inherits(value, "connection")) {
     filename <- summary(value)$description
     text <- paste(readLines(value), collapse = "\n")
     close(value)
@@ -62,7 +62,7 @@ print.alex <- function(x, ...) {
 
   ## List of files or single file?
 
-  if (is(x[[1]], "alex")) {
+  if (inherits(x[[1]], "alex")) {
     lapply(x, print.alex)
 
   } else {
@@ -87,7 +87,7 @@ print_alex_file <- function(x) {
   )
   cat(sep = "", head, "\n", rep("-", nchar(head)), "\n")
 
-  if (!is(x, "data.frame")) return()
+  if (!inherits(x, "data.frame")) return()
 
   msg <- c("warning", "error")[x$fatal + 1]
   w_name <- max(nchar(x$name))
