@@ -2,5 +2,6 @@
 
 S3method(print,alex)
 export(alex)
+export(alex_files)
 importFrom(V8,JS)
 importFrom(V8,v8)

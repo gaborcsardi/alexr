@@ -5,13 +5,12 @@
 #' gender favouring, polarising, race related, religion inconsiderate,
 #' or other unequal phrasing.
 #'
-#' @param value If it is a connection object, then we read all
+#' @param text If it is a connection object, then we read all
 #'   lines from it with \code{readLines()} and then run \code{alex}
 #'   on them. Otherwise if it is a character vector, we run \code{alex}
 #'   on it. If \code{NULL}, then we run \code{alex} on all markdown
 #'   (.Rmd and .md) files in the current working directory.
-#' @return An object with S3 class \code{alex}. It's \code{messages}
-#'   entry contains the suggestions for changes, see examples below.
+#' @return An object with S3 class \code{alex}, which is also a data frame.
 #'
 #' @export
 #' @examples
@@ -19,62 +18,81 @@
 #'              "Thus, the slaves were read-only copies of master.",
 #'              "But not to worry, he was a cripple."))
 #' x
-#' x$message
 
-alex <- function(value = NULL) {
+alex <- function(text = NULL) {
+  if (is.null(text)) return(alex_files(md_files()))
 
-  if (inherits(value, "connection")) {
-    filename <- summary(value)$description
-    text <- paste(readLines(value), collapse = "\n")
-    close(value)
-    res <- ct$call("alex", text)$messages
-    res$file <- filename
-
-  } else if (is.character(value)) {
-    res <- ct$call("alex", paste(value, collapse = "\n"))$messages
-    res$file <- "<value>"
-
-  } else if (is.null(value)) {
-    files <- files_for_alex()
-    res <- lapply(files, function(x) alex(file(x)))
-
-  } else {
-    stop("Unknown value for alex, must be a connection, string, or NULL")
+  if (inherits(text, "connection")) {
+    con <- text
+    text <- readLines(con)
+    close(con)
   }
 
+  input <- paste(text, collapse = "\n")
+
+  ct$assign("input", input)
+  ct$eval("output = alex(input);")
+  res <- ct$get("output", simplifyVector = FALSE)$messages
+
+  res <- format_alex_result(res)
   class(res) <- c("alex", class(res))
   res
 }
 
+#' @rdname alex
+#' @param files Files to check.
+#' @export
 
-files_for_alex <- function() {
+alex_files <- function(files) {
+  res <- lapply(files, function(x) alex(file(x)))
+  for (i in seq_along(res)) {
+    if (nrow(res[[i]])) res[[i]]$file <- files[i]
+  }
+  res <- do.call(rbind, res)
+  class(res) <- c("alex", class(res))
+  attr(res, "files") <- files
+  res
+}
+
+md_files <- function() {
   rmd <- list.files(pattern = "\\.(Rmd|rmd)$")
   md <- list.files(pattern = "\\.md$")
   md <- setdiff(md, sub("\\.[rR]md$", ".md", rmd))
   c(rmd, md)
 }
 
-## TODO: use 'tab' for formatting, once it is fast enough
+format_alex_result <- function(res) {
+  res <- data.frame(
+    stringsAsFactors = FALSE,
+    file = if (length(res)) "<object>" else character(),
+    message = map_chr(res, "[[", "message"),
+    start_line = map_int(res, function(x) x$location$start$line),
+    start_column = map_int(res, function(x) x$location$start$column),
+    end_line = map_int(res, function(x) x$location$end$line),
+    end_column = map_int(res, function(x) x$location$end$column),
+    source = map_chr(res, "[[", "source"),
+    rule_id = map_chr(res, "[[", "ruleId"),
+    fatal = map_lgl(res, "[[", "fatal"),
+    profanity_severity =
+      map_int(res, function(x) x$profanitySeverity %||% NA_integer_)
+  )
+  attr(res, "files") <- "<object>"
+  res
+}
 
-#' @method print alex
+
 #' @export
 
 print.alex <- function(x, ...) {
-
-  ## List of files or single file?
-
-  if (inherits(x[[1]], "alex")) {
-    lapply(x, print.alex)
-
-  } else {
-    print_alex_file(x)
-  }
-
+  files <- attr(x, "files")
+  for (f in files) print_alex_file(x, f)
   invisible(x)
 }
 
 
-print_alex_file <- function(x) {
+print_alex_file <- function(x, file) {
+
+  x <- x[x$file == file, ]
 
   num_msg <- nrow(x) %||% 0
   num_err <- sum(x$fatal)
@@ -82,24 +100,25 @@ print_alex_file <- function(x) {
 
   head <- paste0(
     if (num_msg == 0) "* " else "X ",
-    if (x$file[1] == "") "<text>" else x$file[1], "  ",
+    file, "  ",
     num_msg, " messages",
     " (", num_err, " errors, ", num_war, " warnings)"
   )
   cat(sep = "", head, "\n", rep("-", nchar(head)), "\n")
 
-  if (!inherits(x, "data.frame")) return()
-
   msg <- c("warning", "error")[x$fatal + 1]
-  w_name <- max(nchar(x$name))
-  w_msg  <- max(nchar(msg))
+  pos <- paste0(
+    x$start_line, ":", x$start_column, "-",
+    x$end_line, ":", x$end_column)
+  w_name <- max(nchar(pos), 0)
+  w_msg  <- max(nchar(msg), 0)
   head_width <- w_name + w_msg + 2 + 2 + 4
   text_width <- getOption("width") - head_width
 
   for (i in seq_len(nrow(x))) {
     cat(
       " ",
-      format(x[i, "name"], justify = "right", width = w_name),
+      format(pos[i], justify = "right", width = w_name),
       " ",
       format(msg[i], justify = "left", width = w_msg)
     )
@@ -107,7 +126,7 @@ print_alex_file <- function(x) {
       sep = "",
       "  ",
       paste(
-        strwrap(x[i, "reason"], width = text_width, exdent = head_width),
+        strwrap(x$message[i], width = text_width, exdent = head_width),
         collapse = "\n"
       ),
       "\n"
@@ -115,7 +134,6 @@ print_alex_file <- function(x) {
   }
   cat("\n")
 }
-
 
 ct <- NULL
 

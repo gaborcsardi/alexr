@@ -2,20 +2,24 @@
 % Please edit documentation in R/package.R
 \name{alex}
 \alias{alex}
+\alias{alex_files}
 \title{Catch Insensitive, Inconsiderate Writing}
 \usage{
-alex(value = NULL)
+alex(text = NULL)
+
+alex_files(files)
 }
 \arguments{
-\item{value}{If it is a connection object, then we read all
+\item{text}{If it is a connection object, then we read all
 lines from it with \code{readLines()} and then run \code{alex}
 on them. Otherwise if it is a character vector, we run \code{alex}
 on it. If \code{NULL}, then we run \code{alex} on all markdown
 (.Rmd and .md) files in the current working directory.}
+
+\item{files}{Files to check.}
 }
 \value{
-An object with S3 class \code{alex}. It's \code{messages}
-  entry contains the suggestions for changes, see examples below.
+An object with S3 class \code{alex}, which is also a data frame.
 }
 \description{
 Whether your own or someone else's writing, alex helps you find
@@ -27,5 +31,4 @@ x <- alex(c("The boogeyman wrote all changes to the **master server**.",
              "Thus, the slaves were read-only copies of master.",
              "But not to worry, he was a cripple."))
 x
-x$message
 }
