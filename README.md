@@ -18,9 +18,11 @@ unequal phrasing.
 
 ## Installation
 
+Once on CRAN, install the package with:
+
 
 ```r
-devtools::install_github("gaborcsardi/alexr")
+install.packages("alexr")
 ```
 
 ## Usage
